@@ -25,6 +25,8 @@ type Limiter interface {
 // Clock is the minimum necessary interface to instantiate a rate limiter with
 // a clock or mock clock, compatible with clocks created using
 // github.com/andres-erbsen/clock.
+// Clock 时钟是实例化 一个速率限制器 所需的 最小接口
+//一个时钟或模拟时钟，兼容使用
 type Clock interface {
 	Now() time.Time
 	Sleep(time.Duration)

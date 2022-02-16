@@ -2,13 +2,13 @@ package ratelimit_test
 
 import (
 	"fmt"
+	ratelimit "github.com/gofaquan/uber-go-ratelimit"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/gofaquan/uber-go-ratelimit/internal/clock"
 	"go.uber.org/atomic"
-	"go.uber.org/ratelimit"
-	"go.uber.org/ratelimit/internal/clock"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -1,26 +1,4 @@
-// Copyright (c) 2016 Uber Technologies, Inc.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
 package clock
-
-// Forked from github.com/andres-erbsen/clock to isolate a missing nap.
 
 import (
 	"container/heap"
@@ -28,22 +6,22 @@ import (
 	"time"
 )
 
-// Mock represents a mock clock that only moves forward programmically.
-// It can be preferable to a real-time clock when testing time-based functionality.
+// Mock 表示只通过编程方式向前移动的模拟时钟。
+//当测试基于时间的功能时，它可以比实时时钟更好。
 type Mock struct {
 	sync.Mutex
 	now    time.Time // current time
 	timers Timers    // timers
 }
 
-// NewMock returns an instance of a mock clock.
-// The current time of the mock clock on initialization is the Unix epoch.
+// NewMock 返回一个模拟时钟的实例。
+//模拟时钟初始化时的当前时间为 时间戳(Unix epoch)。
 func NewMock() *Mock {
 	return &Mock{now: time.Unix(0, 0)}
 }
 
-// Add moves the current time of the mock clock forward by the duration.
-// This should only be called from a single goroutine at a time.
+// Add 将模拟时钟的当前时间向前移动 d 。
+//每次只能从一个 goroutine 调用。
 func (m *Mock) Add(d time.Duration) {
 	m.Lock()
 	// Calculate the final time.
@@ -58,11 +36,12 @@ func (m *Mock) Add(d time.Duration) {
 	}
 
 	m.Unlock()
-	// Give a small buffer to make sure the other goroutines get handled.
-	nap()
+	//给一个小的缓冲区，以确保其他 goroutines 得到处理。
+	nap() //nap 午睡，休息
 }
 
 // Timer produces a timer that will emit a time some duration after now.
+// Timer 生成一个 Timer，它将在 一段时间(d) 后发出一个时间。
 func (m *Mock) Timer(d time.Duration) *Timer {
 	ch := make(chan time.Time)
 	t := &Timer{
@@ -82,12 +61,13 @@ func (m *Mock) addTimer(t *Timer) {
 }
 
 // After produces a channel that will emit the time after a duration passes.
+// After 生成一个通道，该通道将在 一个持续时间(d) 过后发出时间。
 func (m *Mock) After(d time.Duration) <-chan time.Time {
 	return m.Timer(d).C
 }
 
-// AfterFunc waits for the duration to elapse and then executes a function.
-// A Timer is returned that can be stopped.
+// AfterFunc 等待 duration(d) 结束，然后执行一个函数。
+//返回一个可以停止的定时器。
 func (m *Mock) AfterFunc(d time.Duration, f func()) *Timer {
 	t := m.Timer(d)
 	go func() {
@@ -98,20 +78,20 @@ func (m *Mock) AfterFunc(d time.Duration, f func()) *Timer {
 	return t
 }
 
-// Now returns the current wall time on the mock clock.
+// Now 现在返回模拟时钟上的当前时间。
 func (m *Mock) Now() time.Time {
 	m.Lock()
 	defer m.Unlock()
 	return m.now
 }
 
-// Sleep pauses the goroutine for the given duration on the mock clock.
-// The clock must be moved forward in a separate goroutine.
+// Sleep 在模拟时钟上暂停 给定时间(d) 的 goroutine。
+//时钟必须向前移动在一个单独的 goroutine。
 func (m *Mock) Sleep(d time.Duration) {
 	<-m.After(d)
 }
 
-// Timer represents a single event.
+// Timer 表示单个事件。
 type Timer struct {
 	C    <-chan time.Time
 	c    chan time.Time
@@ -119,6 +99,7 @@ type Timer struct {
 	mock *Mock     // mock clock
 }
 
+// Next 进入下一个事件
 func (t *Timer) Next() time.Time { return t.next }
 
 func (t *Timer) Tick() {
@@ -129,5 +110,5 @@ func (t *Timer) Tick() {
 	nap()
 }
 
-// Sleep momentarily so that other goroutines can process.
+// nap 暂时休眠，以便其他goroutines可以处理。
 func nap() { time.Sleep(1 * time.Millisecond) }

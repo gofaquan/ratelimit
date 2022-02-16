@@ -41,34 +41,36 @@ type limiter struct {
 	clock      Clock         // 时钟
 }
 
-// Option configures a Limiter.
+// Option 用 Option设计模式 配置一个 Limiter 限制器.
 type Option func(l *limiter)
 
-// New returns a Limiter that will limit to the given RPS.
+// New 返回一个限制器，将限制给定的 RPS  (revolutions per second) 。
 func New(rate int, opts ...Option) Limiter {
 	l := &limiter{
-		perRequest: time.Second / time.Duration(rate),
-		maxSlack:   -10 * time.Second / time.Duration(rate),
+		perRequest: time.Second / time.Duration(rate),       //每次的时间间隔 = 1 / rate 秒, eg: 1/3 = 333.333333 ms
+		maxSlack:   -10 * time.Second / time.Duration(rate), // 最大的富余量 = -10 * rate 秒
 	}
+	//为上方的 limiter 配置 各种参数，如下方的 WithClock ，传入即可配置对应 clock 参数
 	for _, opt := range opts {
 		opt(l)
 	}
+	// 如果上方未配置 clock 参数，那就给他创建一个
 	if l.clock == nil {
 		l.clock = clock.New()
 	}
 	return l
 }
 
-// WithClock returns an option for ratelimit.New that provides an alternate
-// Clock implementation, typically a mock Clock for testing.
+// WithClock 返回一个 ratelimit.New 的 Option。
+//提供替代方案的新时钟 Clock 的实现，通常是用于测试的模拟时钟。
 func WithClock(clock Clock) Option {
 	return func(l *limiter) {
 		l.clock = clock
 	}
 }
 
-// WithoutSlack is an option for ratelimit.New that initializes the limiter
-// without any initial tolerance for bursts of traffic.
+// WithoutSlack 是 ratelimit.New 的一个初始化 Option。
+// 初始化一个 没有任何初始容忍突发流量的 limiter 限制器。
 var WithoutSlack Option = withoutSlackOption
 
 func withoutSlackOption(l *limiter) {

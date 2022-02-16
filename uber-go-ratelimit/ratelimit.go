@@ -33,12 +33,12 @@ type Clock interface {
 }
 
 type limiter struct {
-	sync.Mutex
-	last       time.Time
-	sleepFor   time.Duration
-	perRequest time.Duration
-	maxSlack   time.Duration
-	clock      Clock
+	sync.Mutex               // 锁
+	last       time.Time     // 上一次的时刻
+	sleepFor   time.Duration // 需要等待的时间
+	perRequest time.Duration // 每次的时间间隔
+	maxSlack   time.Duration // 最大的富余量
+	clock      Clock         // 时钟
 }
 
 // Option configures a Limiter.

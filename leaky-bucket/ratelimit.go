@@ -7,7 +7,7 @@ import (
 )
 
 // Note: This file is inspired by:
-//"go.uber.org/ratelimit/internal/clock"
+//"go.uber.org/ratelimit/"
 
 // Limiter 限制器用于限速某些进程，可能跨越 goroutines。
 //进程在每次迭代之前调用 Take()

@@ -1,7 +1,7 @@
-package leaky_bucket
+package leakyBucket
 
 import (
-	"github.com/gofaquan/uber-go-ratelimit/internal/clock"
+	"github.com/gofaquan/leaky-bucket/internal/clock"
 	"sync"
 	"time"
 )

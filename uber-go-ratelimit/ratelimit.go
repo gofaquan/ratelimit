@@ -10,21 +10,14 @@ import (
 // Note: This file is inspired by:
 //"go.uber.org/ratelimit/internal/clock"
 
-// Limiter is used to rate-limit some process, possibly across goroutines.
-// The process is expected to call Take() before every iteration, which
-// may block to throttle the goroutine.
 // Limiter 限制器用于限速某些进程，可能跨越 goroutines。
 //进程在每次迭代之前调用 Take()
 //可能会阻塞，以节流 goroutine。
 type Limiter interface {
-	// Take should block to make sure that the RPS is met.
 	// Take 方法应该阻塞已确保满足 RPS (revolutions per second)
 	Take() time.Time
 }
 
-// Clock is the minimum necessary interface to instantiate a rate limiter with
-// a clock or mock clock, compatible with clocks created using
-// github.com/andres-erbsen/clock.
 // Clock 时钟是实例化 一个速率限制器 所需的 最小接口
 //一个时钟或模拟时钟，兼容使用
 type Clock interface {
@@ -77,34 +70,35 @@ func withoutSlackOption(l *limiter) {
 	l.maxSlack = 0
 }
 
-// Take blocks to ensure that the time spent between multiple
-// Take calls is on average time.Second/rate.
+//下面的代码根据记录每次请求的间隔时间和上一次请求的时刻来计算当次请求需要阻塞的时间 sleepFor ，
+//这里需要留意的是 sleepFor 的值可能为负，在经过间隔时间长的两次访问之后会导致随后大量的请求被放行，
+//所以代码中针对这个场景有专门的优化处理。创建限制器的 New() 函数中会为 maxSlack 设置初始值，
+//也可以通过 WithoutSlack 这个 Option 取消这个默认值。
+
+// Take 会阻塞确保两次请求之间的时间走完
+// Take 调用平均数为 time.Second/rate.
 func (t *limiter) Take() time.Time {
 	t.Lock()
 	defer t.Unlock()
 
 	now := t.clock.Now()
 
-	// If this is our first request, then we allow it.
+	// 如果是第一次请求就直接放行
 	if t.last.IsZero() {
 		t.last = now
 		return t.last
 	}
 
-	// sleepFor calculates how much time we should sleep based on
-	// the perRequest budget and how long the last request took.
-	// Since the request may take longer than the budget, this number
-	// can get negative, and is summed across requests.
+	// sleepFor 根据 perRequest 和上一次请求的时刻计算应该 sleep 的时间
+	// 由于每次请求间隔的时间可能会超过 perRequest, 所以这个数字可能为负数，并在多个请求之间累加
 	t.sleepFor += t.perRequest - now.Sub(t.last)
 
-	// We shouldn't allow sleepFor to get too negative, since it would mean that
-	// a service that slowed down a lot for a short period of time would get
-	// a much higher RPS following that.
+	// 我们不应该让 sleepFor 负的太多，因为这意味着一个服务在短时间内慢了很多随后会得到更高的 RPS。
 	if t.sleepFor < t.maxSlack {
 		t.sleepFor = t.maxSlack
 	}
 
-	// If sleepFor is positive, then we should sleep now.
+	// 如果 sleepFor 是正值那么就 sleep
 	if t.sleepFor > 0 {
 		t.clock.Sleep(t.sleepFor)
 		t.last = now.Add(t.sleepFor)
@@ -118,11 +112,12 @@ func (t *limiter) Take() time.Time {
 
 type unlimited struct{}
 
-// NewUnlimited returns a RateLimiter that is not limited.
+// NewUnlimited 返回一个不受限制的 RateLimiter 限制器。
 func NewUnlimited() Limiter {
 	return unlimited{}
 }
 
+// Take 写一个 Take() 函数 实现 Limiter 限制器接口
 func (unlimited) Take() time.Time {
 	return time.Now()
 }

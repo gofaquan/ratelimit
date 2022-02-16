@@ -1,40 +1,24 @@
-// Copyright (c) 2016 Uber Technologies, Inc.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
-package ratelimit // import "go.uber.org/ratelimit"
+package ratelimit
 
 import (
 	"sync"
 	"time"
 
-	"go.uber.org/ratelimit/internal/clock"
+	"github.com/gofaquan/uber-go-ratelimit/internal/clock"
 )
 
 // Note: This file is inspired by:
-// https://github.com/prashantv/go-bench/blob/master/ratelimit
+//"go.uber.org/ratelimit/internal/clock"
 
 // Limiter is used to rate-limit some process, possibly across goroutines.
 // The process is expected to call Take() before every iteration, which
 // may block to throttle the goroutine.
+// Limiter 限制器用于限速某些进程，可能跨越 goroutines。
+//进程在每次迭代之前调用 Take()
+//可能会阻塞，以节流 goroutine。
 type Limiter interface {
 	// Take should block to make sure that the RPS is met.
+	// Take 方法应该阻塞已确保满足 RPS (revolutions per second)
 	Take() time.Time
 }
 

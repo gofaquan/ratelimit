@@ -1,4 +1,4 @@
-# Go rate limiter [![GoDoc][doc-img]][doc] [![Coverage Status][cov-img]][cov] ![test][test-img]
+# Go rate limiter [][doc] [![Coverage Status][cov-img]][cov] ![test][test-img]
 
 This package provides a Golang implementation of the leaky-bucket rate limit algorithm.
 This implementation refills the bucket based on the time elapsed between

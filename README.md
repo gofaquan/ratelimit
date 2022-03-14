@@ -7,10 +7,6 @@ requests instead of requiring an interval clock to fill the bucket discretely.
 Create a rate limiter with a maximum number of operations to perform per second.
 Call Take() before each operation. Take will sleep until you can continue.
 
-
-
-
-
 ```go
 import (
 	"fmt"
